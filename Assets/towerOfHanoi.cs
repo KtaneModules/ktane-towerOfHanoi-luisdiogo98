@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using KModkit;
 using rnd = UnityEngine.Random;
@@ -168,4 +169,77 @@ public class towerOfHanoi : MonoBehaviour
 
 		animating = false;
 	}
+
+    //twitch plays
+    private bool inputIsValid(string cmd)
+    {
+        int count = 0;
+        char[] validchars = { '1', '2', '3' };
+        for(int i = 0; i < cmd.Length; i++)
+        { 
+            if(count == 2)
+            {
+                count = 0;
+                if(!cmd.ElementAt(i).Equals(' '))
+                {
+                    return false;
+                }
+            }
+            else if (!validchars.Contains(cmd.ElementAt(i))){
+                return false;
+            }
+            else
+            {
+                count++;
+                if(cmd.Length-1 == i && count != 2)
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    #pragma warning disable 414
+    private readonly string TwitchHelpMessage = @"!{0} move 1 2;3 1;2 3 [Moves the specified pillar's top disk to the specified pillar (chainable)] | 1 = leftmost pillar & 3 = rightmost pillar";
+    #pragma warning restore 414
+
+    IEnumerator ProcessTwitchCommand(string command)
+    {
+        string[] parameters = command.Split(' ', ';', ',');
+        if (Regex.IsMatch(parameters[0], @"^\s*move\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            if(parameters.Length >= 3)
+            {
+                int count = 1;
+                for (int i = 2; i < parameters.Length; i++)
+                {
+                    if(count == 2)
+                    {
+                        count = 0;
+                        parameters[1] += " ";
+                    }
+                    count++;
+                    parameters[1] += parameters[i];
+                }
+                if (inputIsValid(parameters[1]))
+                {
+                    yield return null;
+                    string[] temp = parameters[1].Split(' ');
+                    for (int i = 0; i < temp.Length; i++)
+                    {
+                        int init = int.Parse(temp[i].ElementAt(0) + "");
+                        int end = int.Parse(temp[i].ElementAt(1) + "");
+                        init--;
+                        end--;
+                        btns[init].OnInteract();
+                        while(animating == true) { yield return new WaitForSeconds(0.1f); }
+                        btns[end].OnInteract();
+                        while (animating == true) { yield return new WaitForSeconds(0.1f); }
+                    }
+                }
+            }
+            yield break;
+        }
+    }
 }
