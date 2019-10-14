@@ -22,6 +22,7 @@ public class towerOfHanoi : MonoBehaviour
 	public GameObject[] disks;
 
 	List<int> sol;
+	List<int> altSol;
 	Stack[] rods = new Stack[3];
 
 	int slot = -1;
@@ -60,16 +61,17 @@ public class towerOfHanoi : MonoBehaviour
 			rods[btn].Push(slot);
 			slot = -1;
 
-			if(btn == 2)
-			{
-				List<int> status = rods[2].Cast<int>().ToList();
-				status.Sort();
+			
+			List<int> statusRight = rods[2].Cast<int>().ToList();
+			statusRight.Sort();
 
-				if(status.SequenceEqual(sol))
-				{
-					moduleSolved = true;
-            		GetComponent<KMBombModule>().HandlePass();
-				}
+			List<int> statusCenter = rods[1].Cast<int>().ToList();
+			statusCenter.Sort();
+
+			if(statusRight.SequenceEqual(sol) && statusCenter.SequenceEqual(altSol))
+			{
+				moduleSolved = true;
+				GetComponent<KMBombModule>().HandlePass();
 			}
 
 			StartCoroutine(DiskDown((int) rods[btn].Peek(), rods[btn].Count, btn));
@@ -89,26 +91,28 @@ public class towerOfHanoi : MonoBehaviour
 		int[] digits = bomb.GetSerialNumberNumbers().ToArray();
 
 		for(int i = 0; i < digits.Length; i++)
-			if(digits[i] >= 1 && digits[i] <= 5 && !sol.Contains(digits[i]))
+			if(digits[i] >= 1 && digits[i] <= 6 && !sol.Contains(digits[i]))
 				sol.Add(digits[i]);
 
-		if(bomb.GetBatteryCount() >= 1 && bomb.GetBatteryCount() <= 5 && !sol.Contains(bomb.GetBatteryCount()))
+		if(bomb.GetBatteryCount() >= 1 && bomb.GetBatteryCount() <= 6 && !sol.Contains(bomb.GetBatteryCount()))
 			sol.Add(bomb.GetBatteryCount());
 
-		if(bomb.GetIndicators().Count() >= 1 && bomb.GetIndicators().Count() <= 5 && !sol.Contains(bomb.GetIndicators().Count()))
+		if(bomb.GetIndicators().Count() >= 1 && bomb.GetIndicators().Count() <= 6 && !sol.Contains(bomb.GetIndicators().Count()))
 			sol.Add(bomb.GetIndicators().Count());
 
-		if(bomb.GetPortCount() >= 1 && bomb.GetPortCount() <= 5 && !sol.Contains(bomb.GetPortCount()))
+		if(bomb.GetPortCount() >= 1 && bomb.GetPortCount() <= 6 && !sol.Contains(bomb.GetPortCount()))
 			sol.Add(bomb.GetPortCount());
-
-		if(sol.Count() == 0)
-		{
-			sol = new int[] { 1, 2, 3, 4, 5 }.ToList();
-		}
 
 		sol.Sort();
 
-        Debug.LogFormat("[Tower of Hanoi #{0}] Required disks for solve are: {1}.", moduleId, sol.Join(", "));
+		altSol = new List<int>();
+		
+		for(int i = 1; i <= 6; i++)
+			if(!sol.Contains(i))
+				altSol.Add(i);
+
+        Debug.LogFormat("[Tower of Hanoi #{0}] Required disks on the rightmost rod for solve are: {1}.", moduleId, sol.Join(", "));
+        Debug.LogFormat("[Tower of Hanoi #{0}] Required disks on the center rod for solve are: {1}.", moduleId, altSol.Join(", "));
 	}
 
 	void FillRods()
@@ -117,6 +121,7 @@ public class towerOfHanoi : MonoBehaviour
 		rods[1] = new Stack();
 		rods[2] = new Stack();
 
+		rods[0].Push(6);
 		rods[0].Push(5);
 		rods[0].Push(4);
 		rods[0].Push(3);
