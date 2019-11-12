@@ -18,6 +18,6 @@ MonoBehaviour:
     HTML: https://ktane.timwi.de/HTML/Tower%20of%20Hanoi.html\r\nManual PDF: https://ktane.timwi.de/PDF/Tower%20of%20Hanoi.pdf\r\n\r\nAny
     problems/suggestions, feel free to contact me on the KTaNE Discord @TheThirdMan.
     Join the KTaNE Discord here: https://discord.gg/Fv7YEDj"
-  version: 1.0
+  version: 2.1
   outputFolder: build
   previewImage: {fileID: 2800000, guid: 099bf1ec961968b4b8b7dc8e768867d6, type: 3}

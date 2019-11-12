@@ -176,27 +176,18 @@ public class towerOfHanoi : MonoBehaviour
 	}
 
     //twitch plays
-    private bool inputIsValid(string cmd)
+    private bool inputIsValid(string[] cmds)
     {
-        int count = 0;
         char[] validchars = { '1', '2', '3' };
-        for(int i = 0; i < cmd.Length; i++)
+        for(int i = 0; i < cmds.Length; i++)
         { 
-            if(count == 2)
+            if(cmds.ElementAt(i).Length != 2)
             {
-                count = 0;
-                if(!cmd.ElementAt(i).Equals(' '))
-                {
-                    return false;
-                }
-            }
-            else if (!validchars.Contains(cmd.ElementAt(i))){
                 return false;
             }
-            else
+            for(int j = 0; j < 2; j++)
             {
-                count++;
-                if(cmd.Length-1 == i && count != 2)
+                if (!validchars.Contains(cmds.ElementAt(i).ElementAt(j)))
                 {
                     return false;
                 }
@@ -211,36 +202,39 @@ public class towerOfHanoi : MonoBehaviour
 
     IEnumerator ProcessTwitchCommand(string command)
     {
-        string[] parameters = command.Split(' ', ';', ',');
-        if (Regex.IsMatch(parameters[0], @"^\s*move\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        string[] parameters = command.Split(';', ',');
+        if(parameters[0].Length < 4)
         {
-            if(parameters.Length >= 3)
+            yield break;
+        }
+        if (Regex.IsMatch(parameters[0].Substring(0, 4), @"^\s*move\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            parameters[0] = parameters[0].Replace(parameters[0].Substring(0, 4), "");
+            for (int i = 0; i < parameters.Length; i++)
             {
-                int count = 1;
-                for (int i = 2; i < parameters.Length; i++)
+                parameters[i] = parameters[i].Replace(" ", "");
+            }
+            if (inputIsValid(parameters))
+            {
+                yield return null;
+                for (int i = 0; i < parameters.Length; i++)
                 {
-                    if(count == 2)
+                    int init = int.Parse(parameters[i].ElementAt(0) + "");
+                    int end = int.Parse(parameters[i].ElementAt(1) + "");
+                    init--;
+                    end--;
+                    if (rods[init].Count == 0)
                     {
-                        count = 0;
-                        parameters[1] += " ";
+                        yield return "sendtochaterror You cannot move a disk from an empty pillar!";
+                        yield break;
                     }
-                    count++;
-                    parameters[1] += parameters[i];
-                }
-                if (inputIsValid(parameters[1]))
-                {
-                    yield return null;
-                    string[] temp = parameters[1].Split(' ');
-                    for (int i = 0; i < temp.Length; i++)
+                    btns[init].OnInteract();
+                    while (animating == true) { yield return new WaitForSeconds(0.1f); }
+                    btns[end].OnInteract();
+                    while (animating == true) { yield return new WaitForSeconds(0.1f); }
+                    if (rods[end].Count != 0 && slot > (int)rods[end].Peek())
                     {
-                        int init = int.Parse(temp[i].ElementAt(0) + "");
-                        int end = int.Parse(temp[i].ElementAt(1) + "");
-                        init--;
-                        end--;
                         btns[init].OnInteract();
-                        while(animating == true) { yield return new WaitForSeconds(0.1f); }
-                        btns[end].OnInteract();
-                        while (animating == true) { yield return new WaitForSeconds(0.1f); }
                     }
                 }
             }
